@@ -100,8 +100,7 @@ DWORD WINAPI m(LPVOID pVoid)
         computation();
     }
     wait(gThread);
-    wait(FirstSemaphore);
-    ReleaseSemaphore(sem_p, 1, NULL);
+    ReleaseSemaphore(SecondSemaphore, 1, NULL);
     for (int i = 0;i < 3;i++) {
         wait(sem_m);
         wait(stdout_mutex);
@@ -332,9 +331,10 @@ int lab3_init()
     mThread = CreateThread(NULL, 0,(m), 0, 0, &IDThread);
     if (mThread == NULL)
         return GetLastError();
-    //wait(FirstSemaphore);
+    wait(FirstSemaphore);
+    wait(SecondSemaphore);
     wait(gThread);
-
+    ReleaseSemaphore(sem_p, 1, NULL);
     pThread = CreateThread(NULL, 0,(p), 0, 0, &IDThread);
     if (pThread == NULL)
         return GetLastError();
@@ -355,7 +355,6 @@ int lab3_init()
     CloseHandle(FirstSemaphore);
     CloseHandle(SecondSemaphore);
 
-    CloseHandle(FirstSemaphore);
 
     CloseHandle(aThread);
     CloseHandle(eThread);
