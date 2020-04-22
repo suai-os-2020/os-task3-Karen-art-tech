@@ -6,8 +6,7 @@
 // lab3 code should be located here!
 //
 #define MAX_SEM_COUNT 10
-#define THREADCOUNT 12
-#define PAUSE 10 /* ms */
+
 
 using namespace std;
 
@@ -80,6 +79,7 @@ DWORD WINAPI k(LPVOID pVoid)
         computation();
     }
     wait(gThread);
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     for (int i = 0;i < 3;i++) {
         wait(sem_k);
         wait(stdout_mutex);
@@ -100,6 +100,8 @@ DWORD WINAPI m(LPVOID pVoid)
         computation();
     }
     wait(gThread);
+    wait(FirstSemaphore);
+    ReleaseSemaphore(sem_p, 1, NULL);
     for (int i = 0;i < 3;i++) {
         wait(sem_m);
         wait(stdout_mutex);
@@ -108,6 +110,7 @@ DWORD WINAPI m(LPVOID pVoid)
         computation();
         ReleaseSemaphore(sem_p, 1, NULL);
     }
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     wait(pThread);
     wait(kThread);
     for (int i = 0;i < 3;i++) {
@@ -161,12 +164,13 @@ DWORD WINAPI g(LPVOID pVoid)
 {
     for (int i = 0;i < 3;i++) {
         wait(stdout_mutex);
-        cout << "g"  << flush;
+        cout << "g" << flush;
         ReleaseMutex(stdout_mutex);
         computation();
     }
     wait(fThread);
     wait(hThread);
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     for (int i = 0;i < 3;i++) {
         wait(stdout_mutex);
         cout << "g"  << flush;
@@ -184,7 +188,7 @@ DWORD WINAPI f(LPVOID pVoid)
         ReleaseMutex(stdout_mutex);
         computation();
     }
-
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     wait(eThread);
     for (int i = 0;i < 3;i++) {
         wait(stdout_mutex);
@@ -203,7 +207,7 @@ DWORD WINAPI e(LPVOID pVoid)
         ReleaseMutex(stdout_mutex);
         computation();
     }
-
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     wait(cThread);
     wait(dThread);
     for (int i = 0;i < 3;i++) {
@@ -244,7 +248,7 @@ DWORD WINAPI b(LPVOID pVoid)
         ReleaseMutex(stdout_mutex);
         computation();
     }
-
+    ReleaseSemaphore(FirstSemaphore, 1, NULL);
     wait(aThread);
     for (int i = 0;i < 3;i++) {
         wait(stdout_mutex);
@@ -289,7 +293,7 @@ int lab3_init()
         return GetLastError();
 
     wait(aThread);
-
+    wait(FirstSemaphore);
     cThread = CreateThread(NULL, 0,(c), 0, 0, &IDThread);
     if (cThread == NULL)
         return GetLastError();
@@ -298,49 +302,51 @@ int lab3_init()
     wait(bThread);
     wait(FirstSemaphore);
     dThread = CreateThread(NULL, 0,(d), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (dThread == NULL)
         return GetLastError();
 
     eThread = CreateThread(NULL, 0,(e), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (eThread == NULL)
         return GetLastError();
     wait(cThread);
     wait(dThread);
+    wait(FirstSemaphore);
     fThread = CreateThread(NULL, 0,(f), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (fThread == NULL)
         return GetLastError();
 
     wait(eThread);
+    wait(FirstSemaphore);
     hThread = CreateThread(NULL, 0,(h), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (hThread == NULL)
         return GetLastError();
     gThread = CreateThread(NULL, 0,(g), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (gThread == NULL)
         return GetLastError();
-
+    wait(FirstSemaphore);
     wait(fThread);
     wait(hThread);
     kThread = CreateThread(NULL, 0,(k), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (kThread == NULL)
         return GetLastError();
     mThread = CreateThread(NULL, 0,(m), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (mThread == NULL)
         return GetLastError();
-
+    //wait(FirstSemaphore);
     wait(gThread);
-    ReleaseSemaphore(sem_k, 1, NULL);
-    pThread = CreateThread(NULL, 0,(p), 0, 0, &IDThread);
-    if (cThread == NULL)
-        return GetLastError();
 
+    pThread = CreateThread(NULL, 0,(p), 0, 0, &IDThread);
+    if (pThread == NULL)
+        return GetLastError();
+    wait(FirstSemaphore);
     wait(pThread);
     wait(kThread);
     nThread = CreateThread(NULL, 0,(n), 0, 0, &IDThread);
-    if (cThread == NULL)
+    if (nThread == NULL)
         return GetLastError();
 
     wait(mThread);
-    wait(pThread);
+    wait(nThread);
     // закрываем дескриптор
     CloseHandle(sem_m);
     CloseHandle(sem_k);
